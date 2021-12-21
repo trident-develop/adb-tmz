@@ -30,14 +30,23 @@ class StorageUtils {
             return sharedPrefs.getString(name).toString()
         }
 
-        fun setOnDeepLinkDataSuccess(name: String, flag: String){
+
+
+        fun setOnGameLaunched(name: String, flag: String){
             sharedPrefs.put(name, flag)
         }
 
-        fun getOnDeepLinkDataSuccess(name: String): String{
+        fun getOnGameLaunched(name: String): String{
             return sharedPrefs.getString(name).toString()
         }
 
+        fun setOnWebLaunched(name: String, flag: String){
+            sharedPrefs.put(name, flag)
+        }
+
+        fun getOnWebLaunched(name: String): String{
+            return sharedPrefs.getString(name).toString()
+        }
 
     }
 
@@ -50,9 +59,7 @@ class StorageUtils {
         class SecurePreferencesException(e: Throwable?) :
             RuntimeException(e)
 
-        /**
-         * настройка шифрования
-         */
+
         //шиврофка ключей
         private var encryptKeys = false
         private var writer: Cipher? = null

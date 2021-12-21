@@ -3,14 +3,9 @@
     package="com.trident.library">
 
     <application>
-        <activity
-            android:name=".MainActivity"
-            android:exported="false" />
-
         <activity android:name=".WebActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:windowSoftInputMode="adjustResize">
-
         </activity>
     </application>
 

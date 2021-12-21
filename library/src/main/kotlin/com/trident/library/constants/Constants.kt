@@ -6,9 +6,20 @@ import android.webkit.WebView
 import androidx.lifecycle.MutableLiveData
 import com.trident.library.callbacks.BackObjectCallback
 import com.trident.library.storage.Repository
+import com.trident.library.storage.prefs.StorageUtils
 
 object Constants {
 
+
+
+    val ON_GAME_LAUNCHED = "conversion"
+    val ON_WEB_LAUNCHED = "deep"
+
+    val TRUE = "true"
+
+
+
+    lateinit var preferences: StorageUtils.Preferences
     lateinit var backObjectCallback: BackObjectCallback
 
     //room database
