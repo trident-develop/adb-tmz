@@ -21,8 +21,11 @@ object Constants {
 
 
 
-    val ON_GAME_LAUNCHED = "conversion"
+    val ON_GAME_LAUNCHED = "game"
     val ON_WEB_LAUNCHED = "deep"
+    val ONCONVERSION = "conversion"
+
+    var urlNumber: Int = 0
 
     val TRUE = "true"
 

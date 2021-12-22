@@ -18,6 +18,7 @@ import com.onesignal.OneSignal
 import com.trident.library.Utils.createRepoInstance
 import com.trident.library.callbacks.BackObjectCallback
 import com.trident.library.constants.Constants
+import com.trident.library.constants.Constants.ONCONVERSION
 import com.trident.library.constants.Constants.ONESIGNAL_ID
 import com.trident.library.constants.Constants.ON_GAME_LAUNCHED
 import com.trident.library.constants.Constants.ON_WEB_LAUNCHED
@@ -92,10 +93,6 @@ object BackObject {
 
     //main - setup function (start it in MainActivity class)
     fun setup(appsflyerId: String, oneSignalId: String, activity: AppCompatActivity) {
-
-        //initializing one signal
-        initOnesignal(activity.applicationContext, oneSignalId)
-
         //createRepoInstance(activity.applicationContext)
         deepLinkLiveData = MutableLiveData<Boolean>()
         appsLiveData = MutableLiveData<Boolean>()
@@ -109,13 +106,11 @@ object BackObject {
         backObjectCallback = activity as BackObjectCallback
 
         if (preferences.getOnGameLaunched(name = ON_GAME_LAUNCHED) == TRUE) {
-
+            Log.d("library", " on game launched prefs")
             backObjectCallback.startGame()
             activity.finish()
 
         } else if (preferences.getOnWebLaunched(name = ON_WEB_LAUNCHED) == TRUE) {
-
-
 
             activity.lifecycleScope.launch(Dispatchers.IO) {
                 Log.d("library", createRepoInstance(activity).linkDao.getAllData().component1().link.toString() + " link not first launch web")
@@ -134,6 +129,9 @@ object BackObject {
 
             //assigning vars from app context strings
             assignVars(activity)
+
+            //initializing one signal
+            initOnesignal(activity.applicationContext, oneSignalId)
 
             //assigning ad_id
             assignAdvertiserId(activity.applicationContext)
@@ -237,9 +235,9 @@ object BackObject {
     //getting ad_id from context
     private fun assignAdvertiserId(context: Context) {
         GlobalScope.launch {
-            // val adInfo = AdvertisingIdClient.getAdvertisingIdInfo(context)
-            // gadid = adInfo.id.toString()
-            gadid = "dbc5ec17-403d-46fa-9e2b-5b3fc43425eb"
+            val adInfo = AdvertisingIdClient.getAdvertisingIdInfo(context)
+            gadid = adInfo.id.toString()
+            //gadid = "dbc5ec17-403d-46fa-9e2b-5b3fc43425eb"
             Log.d("library", "$gadid ad-id")
         }
     }
@@ -287,12 +285,15 @@ object BackObject {
                 //logs data
                 Log.d("library", "7. Response code - ${response.code()} (next - passing url to webview)")
 
+                Log.d("library", response.raw().request().url().toString() + " response redirect url")
+                preferences.setOnLastUrlNumber("0")
+
                 activity.lifecycleScope.launch(Dispatchers.IO) {
                     OneSignal.sendTag("key1", "nobot")
                     OneSignal.setExternalUserId(gadid)
 
                     //creating repo instance
-                    createRepoInstance(activity.applicationContext).linkDao.addLink(Link(1, "https://www.google.com.ua/"))
+                    createRepoInstance(activity.applicationContext).linkDao.addLink(Link(1, response.raw().request().url().toString()))
 
                     Log.d("library",
                         createRepoInstance(activity.applicationContext).linkDao.getAllData().component1().link.toString() + " link added in first response"
@@ -317,7 +318,8 @@ object BackObject {
 
                 //sending callback to apps main activity
                 backObjectCallback.startGame()
-
+                //logs data
+                Log.d("library", "SETTED GAME LAUNCHED")
                 preferences.setOnGameLaunched(ON_GAME_LAUNCHED, TRUE)
 
                 activity.finish()
@@ -334,72 +336,79 @@ object BackObject {
             override fun onConversionDataSuccess(data: MutableMap<String, Any>?) {
                 data?.let { cvData ->
                     cvData.map {
+                        if (preferences.getOnConversionDataSuccess(ONCONVERSION) == TRUE) {
 
-                        afId = AppsFlyerLib.getInstance().getAppsFlyerUID(context)
-
-                        //logs data
-                        Log.d("library", "data success - $data")
-
-                        if (it.key == "media_source" && it.value.toString().isNotEmpty()) {
-                            source = it.value.toString()
                         } else {
-                            source = "null"
+
+                            afId = AppsFlyerLib.getInstance().getAppsFlyerUID(context)
+
+                            //logs data
+                            Log.d("library", "data success - $data")
+
+                            if (it.key == "media_source" && it.value.toString().isNotEmpty()) {
+                                source = it.value.toString()
+                            } else {
+                                source = "null"
+                            }
+
+                            if (it.key == "adgroup_id" && it.value.toString().isNotEmpty()) {
+                                adId = it.value.toString()
+                            } else {
+                                adId = "null"
+                            }
+
+                            if (it.key == "adset_id" && it.value.toString().isNotEmpty()) {
+                                adsetId = it.value.toString()
+                            } else {
+                                adsetId = "null"
+                            }
+
+
+                            if (it.key == "campaign_id" && it.value.toString().isNotEmpty()) {
+                                campaignId = it.value.toString()
+                            } else {
+                                campaignId = "null"
+                            }
+
+
+                            if (it.key == "campaign" && it.value.toString().isNotEmpty()) {
+                                appCampaign = it.value.toString()
+                            } else {
+                                appCampaign = "null"
+                            }
+
+
+                            if (it.key == "adset" && it.value.toString().isNotEmpty()) {
+                                adset = it.value.toString()
+                            } else {
+                                adset = "null"
+                            }
+
+
+                            if (it.key == "adgroup" && it.value.toString().isNotEmpty()) {
+                                adgroup = it.value.toString()
+                            } else {
+                                adgroup = "null"
+                            }
+
+
+                            if (it.key == "orig_cost" && it.value.toString().isNotEmpty()) {
+                                origCost = it.value.toString()
+                            } else {
+                                origCost = "null"
+                            }
+
+                            if (it.key == "af_siteid" && it.value.toString().isNotEmpty()) {
+                                afSteid = it.value.toString()
+                            } else {
+                                afSteid = "null"
+                            }
+
+                            appsLiveData.postValue(true)
+
+                            preferences.setOnConversionDataSuccess(ONCONVERSION, TRUE)
                         }
 
-                        if (it.key == "adgroup_id" && it.value.toString().isNotEmpty()) {
-                            adId = it.value.toString()
-                        } else {
-                            adId = "null"
-                        }
-
-                        if (it.key == "adset_id" && it.value.toString().isNotEmpty()) {
-                            adsetId = it.value.toString()
-                        } else {
-                            adsetId = "null"
-                        }
-
-
-                        if (it.key == "campaign_id" && it.value.toString().isNotEmpty()) {
-                            campaignId = it.value.toString()
-                        } else {
-                            campaignId = "null"
-                        }
-
-
-                        if (it.key == "campaign" && it.value.toString().isNotEmpty()) {
-                            appCampaign = it.value.toString()
-                        } else {
-                            appCampaign = "null"
-                        }
-
-
-                        if (it.key == "adset" && it.value.toString().isNotEmpty()) {
-                            adset = it.value.toString()
-                        } else {
-                            adset = "null"
-                        }
-
-
-                        if (it.key == "adgroup" && it.value.toString().isNotEmpty()) {
-                            adgroup = it.value.toString()
-                        } else {
-                            adgroup = "null"
-                        }
-
-
-                        if (it.key == "orig_cost" && it.value.toString().isNotEmpty()) {
-                            origCost = it.value.toString()
-                        } else {
-                            origCost = "null"
-                        }
-
-                        if (it.key == "af_siteid" && it.value.toString().isNotEmpty()) {
-                            afSteid = it.value.toString()
-                        } else {
-                            afSteid = "null"
-                        }
-
-                        appsLiveData.postValue(true)
 
                     }
 
@@ -467,4 +476,3 @@ object BackObject {
 
 
 }
-

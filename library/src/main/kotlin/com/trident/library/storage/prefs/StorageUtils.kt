@@ -48,6 +48,14 @@ class StorageUtils {
             return sharedPrefs.getString(name).toString()
         }
 
+        fun setOnLastUrlNumber(num: String){
+            sharedPrefs.put("number", num)
+        }
+
+        fun getOnLastUrlNumber(): String{
+            return sharedPrefs.getString("number").toString()
+        }
+
     }
 
     class SecurePreferences(
