@@ -48,6 +48,8 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.onesignal.OneSignal;
+import com.trident.library.constants.Constants;
 import com.trident.library.storage.persistroom.model.Link;
 
 import java.io.ByteArrayOutputStream;
@@ -190,7 +192,7 @@ public class WebActivity extends AppCompatActivity {
 
         ASWV_URL = getIntent().getStringExtra("url");
         ASWV_HOST = aswm_host(ASWV_URL);
-        Log.d("testing", ASWV_URL);
+        Log.d("library", ASWV_URL + " url in web after intent");
         // ------ PLAY AREA :: for debug purposes only ------ //
 
         // ------- PLAY AREA END ------ //
@@ -530,9 +532,9 @@ public class WebActivity extends AppCompatActivity {
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
                 if(!url.contains("error")){
-                    Log.d(TAG, url);
+                    Log.d("library", url);
 
-                    Utils.INSTANCE.createRepoInstance(getApplicationContext()).updateLink(new Link(1, url));
+                    Constants.INSTANCE.getRepository().updateLink(new Link(1, url));
 
                 }
             }
@@ -570,7 +572,8 @@ public class WebActivity extends AppCompatActivity {
         public void onPageFinished(WebView view, String url) {
             findViewById(R.id.msw_view).setVisibility(View.VISIBLE);
             if(!url.contains("error")){
-                Log.d(TAG, url);
+                Log.d("library",  url + " - onpagefinished url");
+
                 Utils.INSTANCE.createRepoInstance(getApplicationContext()).updateLink(new Link(1, url));
             }
         }
@@ -584,6 +587,7 @@ public class WebActivity extends AppCompatActivity {
         //Overriding webview URLs
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
+
             CURR_URL = url;
             return url_actions(view, url);
         }
@@ -593,6 +597,7 @@ public class WebActivity extends AppCompatActivity {
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
             CURR_URL = request.getUrl().toString();
+            OneSignal.sendTag("key2", request.getUrl().getQueryParameter("signal"));
             return url_actions(view, request.getUrl().toString());
         }
 
@@ -856,3 +861,4 @@ public class WebActivity extends AppCompatActivity {
         asw_view.restoreState(savedInstanceState);
     }
 }
+

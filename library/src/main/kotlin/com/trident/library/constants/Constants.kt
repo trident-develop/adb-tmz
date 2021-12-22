@@ -10,6 +10,15 @@ import com.trident.library.storage.prefs.StorageUtils
 
 object Constants {
 
+    //название базы данных
+    val NAME = "test"  //опционально
+
+    //ключ шифрования
+    val MAINKEY = "test"  //обязательно (для каждой прилы должен быть свой)
+
+    //шифровать ключ или нет
+    val CHYPRBOOL = true //(оставлять true)
+
 
 
     val ON_GAME_LAUNCHED = "conversion"

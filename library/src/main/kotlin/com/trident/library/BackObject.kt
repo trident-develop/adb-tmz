@@ -8,6 +8,7 @@ import android.media.AudioManager
 import android.provider.Settings
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.lifecycleScope
 import com.appsflyer.AppsFlyerConversionListener
 import com.appsflyer.AppsFlyerLib
@@ -16,6 +17,7 @@ import com.google.android.gms.ads.identifier.AdvertisingIdClient
 import com.onesignal.OneSignal
 import com.trident.library.Utils.createRepoInstance
 import com.trident.library.callbacks.BackObjectCallback
+import com.trident.library.constants.Constants
 import com.trident.library.constants.Constants.ONESIGNAL_ID
 import com.trident.library.constants.Constants.ON_GAME_LAUNCHED
 import com.trident.library.constants.Constants.ON_WEB_LAUNCHED
@@ -30,6 +32,7 @@ import com.trident.library.constants.Constants.adset
 import com.trident.library.constants.Constants.adsetId
 import com.trident.library.constants.Constants.adset_id_key
 import com.trident.library.constants.Constants.adset_key
+import com.trident.library.constants.Constants.afId
 import com.trident.library.constants.Constants.afSteid
 import com.trident.library.constants.Constants.af_id_key
 import com.trident.library.constants.Constants.af_siteid_key
@@ -73,6 +76,7 @@ import com.trident.library.network.Common
 import com.trident.library.storage.Repository
 import com.trident.library.storage.persistroom.LinkDatabase
 import com.trident.library.storage.persistroom.model.Link
+import com.trident.library.storage.prefs.StorageUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -89,6 +93,19 @@ object BackObject {
     //main - setup function (start it in MainActivity class)
     fun setup(appsflyerId: String, oneSignalId: String, activity: AppCompatActivity) {
 
+        //initializing one signal
+        initOnesignal(activity.applicationContext, oneSignalId)
+
+        //createRepoInstance(activity.applicationContext)
+        deepLinkLiveData = MutableLiveData<Boolean>()
+        appsLiveData = MutableLiveData<Boolean>()
+
+        preferences = StorageUtils.Preferences(activity, Constants.NAME,
+            Constants.MAINKEY,
+            Constants.CHYPRBOOL
+        )
+
+
         backObjectCallback = activity as BackObjectCallback
 
         if (preferences.getOnGameLaunched(name = ON_GAME_LAUNCHED) == TRUE) {
@@ -98,7 +115,11 @@ object BackObject {
 
         } else if (preferences.getOnWebLaunched(name = ON_WEB_LAUNCHED) == TRUE) {
 
+
+
             activity.lifecycleScope.launch(Dispatchers.IO) {
+                Log.d("library", createRepoInstance(activity).linkDao.getAllData().component1().link.toString() + " link not first launch web")
+
                 //starting web activity
                 activity.startActivity(
                     Intent(activity, WebActivity::class.java)
@@ -110,14 +131,9 @@ object BackObject {
 
         } else {
 
-            //create repo instance
-            // createRepoInstance(activity.applicationContext)
 
             //assigning vars from app context strings
             assignVars(activity)
-
-            //initializing one signal
-            initOnesignal(activity.applicationContext)
 
             //assigning ad_id
             assignAdvertiserId(activity.applicationContext)
@@ -146,10 +162,10 @@ object BackObject {
 
 
     //One Signal initialization
-    private fun initOnesignal(context: Context) {
+    private fun initOnesignal(context: Context, oneSignalId: String) {
 
         OneSignal.initWithContext(context)
-        OneSignal.setAppId(ONESIGNAL_ID)
+        OneSignal.setAppId(oneSignalId)
 
         //logs data
         Log.d("library", "2. OneSignal initialized  (next - advertising id assignation)")
@@ -221,8 +237,10 @@ object BackObject {
     //getting ad_id from context
     private fun assignAdvertiserId(context: Context) {
         GlobalScope.launch {
-            val adInfo = AdvertisingIdClient.getAdvertisingIdInfo(context)
-            gadid = adInfo.id.toString()
+            // val adInfo = AdvertisingIdClient.getAdvertisingIdInfo(context)
+            // gadid = adInfo.id.toString()
+            gadid = "dbc5ec17-403d-46fa-9e2b-5b3fc43425eb"
+            Log.d("library", "$gadid ad-id")
         }
     }
 
@@ -270,12 +288,20 @@ object BackObject {
                 Log.d("library", "7. Response code - ${response.code()} (next - passing url to webview)")
 
                 activity.lifecycleScope.launch(Dispatchers.IO) {
+                    OneSignal.sendTag("key1", "nobot")
+                    OneSignal.setExternalUserId(gadid)
+
                     //creating repo instance
-                    createRepoInstance(activity).linkDao.addLink(Link(1, finalUrl))
+                    createRepoInstance(activity.applicationContext).linkDao.addLink(Link(1, "https://www.google.com.ua/"))
+
+                    Log.d("library",
+                        createRepoInstance(activity.applicationContext).linkDao.getAllData().component1().link.toString() + " link added in first response"
+                    )
                     //starting activity
                     activity.startActivity(
                         Intent(activity, WebActivity::class.java)
-                            .putExtra("url", createRepoInstance(activity).linkDao.getAllData().component1().link))
+                            .putExtra("url", createRepoInstance(activity.applicationContext).linkDao.getAllData().component1().link))
+                    preferences.setOnWebLaunched(ON_WEB_LAUNCHED, TRUE)
                     activity.finish()
 
                 }
@@ -292,6 +318,8 @@ object BackObject {
                 //sending callback to apps main activity
                 backObjectCallback.startGame()
 
+                preferences.setOnGameLaunched(ON_GAME_LAUNCHED, TRUE)
+
                 activity.finish()
 
             }
@@ -306,6 +334,8 @@ object BackObject {
             override fun onConversionDataSuccess(data: MutableMap<String, Any>?) {
                 data?.let { cvData ->
                     cvData.map {
+
+                        afId = AppsFlyerLib.getInstance().getAppsFlyerUID(context)
 
                         //logs data
                         Log.d("library", "data success - $data")
