@@ -1,6 +1,5 @@
 package com.trident.library
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ApplicationInfo
@@ -19,7 +18,6 @@ import com.trident.library.Utils.createRepoInstance
 import com.trident.library.callbacks.BackObjectCallback
 import com.trident.library.constants.Constants
 import com.trident.library.constants.Constants.ONCONVERSION
-import com.trident.library.constants.Constants.ONESIGNAL_ID
 import com.trident.library.constants.Constants.ON_GAME_LAUNCHED
 import com.trident.library.constants.Constants.ON_WEB_LAUNCHED
 import com.trident.library.constants.Constants.TRUE
@@ -66,7 +64,6 @@ import com.trident.library.constants.Constants.model_key
 import com.trident.library.constants.Constants.origCost
 import com.trident.library.constants.Constants.orig_cost_key
 import com.trident.library.constants.Constants.preferences
-import com.trident.library.constants.Constants.repository
 import com.trident.library.constants.Constants.secure_get_parametr
 import com.trident.library.constants.Constants.secure_key
 import com.trident.library.constants.Constants.source
@@ -74,14 +71,11 @@ import com.trident.library.constants.Constants.source_key
 import com.trident.library.constants.Constants.vpn
 import com.trident.library.constants.Constants.vpn_key
 import com.trident.library.network.Common
-import com.trident.library.storage.Repository
-import com.trident.library.storage.persistroom.LinkDatabase
 import com.trident.library.storage.persistroom.model.Link
 import com.trident.library.storage.prefs.StorageUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import okhttp3.RequestBody
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
