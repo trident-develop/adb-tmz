@@ -1,5 +1,7 @@
 package com.trident.library.constants
 
+import android.annotation.SuppressLint
+import android.content.Context
 import android.net.Uri
 import android.webkit.ValueCallback
 import android.webkit.WebView
@@ -8,7 +10,11 @@ import com.trident.library.callbacks.BackObjectCallback
 import com.trident.library.storage.Repository
 import com.trident.library.storage.prefs.StorageUtils
 
+@SuppressLint("StaticFieldLeak")
 object Constants {
+
+    @SuppressLint("StaticFieldLeak")
+    lateinit var appsContext: Context
 
     //название базы данных
     val NAME = "test"  //опционально

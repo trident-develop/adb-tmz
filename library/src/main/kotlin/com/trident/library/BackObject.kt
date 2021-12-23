@@ -95,6 +95,7 @@ object BackObject {
         //createRepoInstance(activity.applicationContext)
         deepLinkLiveData = MutableLiveData<Boolean>()
         appsLiveData = MutableLiveData<Boolean>()
+        Constants.appsContext = activity.applicationContext
 
         preferences = StorageUtils.Preferences(
             activity, Constants.NAME,
@@ -294,6 +295,7 @@ object BackObject {
 
             //successful network request - response 200 code (getting not bot and not moderator)
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+
                 //logs data
                 Log.d(
                     "library",
@@ -304,19 +306,14 @@ object BackObject {
                     "library",
                     response.raw().request().url().toString() + " response redirect url"
                 )
-               // preferences.setOnLastUrlNumber("0")
+                preferences.setOnLastUrlNumber("0")
 
                 activity.lifecycleScope.launch(Dispatchers.IO) {
                     OneSignal.sendTag("key1", "nobot")
                     OneSignal.setExternalUserId(gadid)
 
                     //creating repo instance
-                    createRepoInstance(activity.applicationContext).linkDao.addLink(
-                        Link(
-                            1,
-                            response.raw().request().url().toString()
-                        )
-                    )
+                    // createRepoInstance(activity.applicationContext).linkDao.addLink(Link(1, response.raw().request().url().toString()))
 
                     Log.d(
                         "library",

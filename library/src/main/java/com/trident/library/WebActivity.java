@@ -575,27 +575,10 @@ public class WebActivity extends AppCompatActivity {
             findViewById(R.id.msw_view).setVisibility(View.VISIBLE);
             if(!url.contains("error")){
                 Log.d("library",  url + " - onpagefinished url");
-                if(!Constants.INSTANCE.getPreferences().getOnLastUrlNumber().equals("-1")){
 
-                    if(Constants.INSTANCE.getPreferences().getOnLastUrlNumber().equals("0")) {
+                if (Constants.INSTANCE.getPreferences().getOnLastUrlNumber().equals("0") && !url.contains("trident")){
 
-                        Constants.INSTANCE.getPreferences().setOnLastUrlNumber("1");
-
-                    } else if(Constants.INSTANCE.getPreferences().getOnLastUrlNumber().equals("1")){
-
-                        Constants.INSTANCE.getPreferences().setOnLastUrlNumber("2");
-
-                    } else if(Constants.INSTANCE.getPreferences().getOnLastUrlNumber().equals("2")){
-
-                        Constants.INSTANCE.getPreferences().setOnLastUrlNumber("3");
-                    }
-                } else {
-
-                }
-
-                if (Constants.INSTANCE.getPreferences().getOnLastUrlNumber().equals("3")){
-
-                    Log.d("library",  url + " - onpagefinished main url");
+                    Log.d("library",  url + " - onpagefinished main url that saved");
                     Utils.INSTANCE.createRepoInstance(getApplicationContext()).updateLink(new Link(1, url));
 
                     Constants.INSTANCE.getPreferences().setOnLastUrlNumber("-1");
@@ -887,4 +870,6 @@ public class WebActivity extends AppCompatActivity {
         asw_view.restoreState(savedInstanceState);
     }
 }
+
+
 
