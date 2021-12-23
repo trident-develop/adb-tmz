@@ -11,8 +11,7 @@ object RetrofitClient {
 
 
          // Get android user agent.
-        val okHttp = OkHttpClient()
-        okHttp.interceptors().add(CustomInterceptor(System.getProperty("http.agent")))
+        val okHttp = OkHttpClient().newBuilder().addInterceptor(CustomInterceptor(System.getProperty("http.agent"))).build()
         //OkHttpClient okHttp = new OkHttpClient()
         //okHttp.interceptors().add(new UserAgentInterceptor(UA));
 
