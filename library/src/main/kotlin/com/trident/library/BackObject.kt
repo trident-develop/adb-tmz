@@ -3,9 +3,12 @@ package com.trident.library
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ApplicationInfo
+import android.content.pm.PackageManager
 import android.media.AudioManager
+import android.os.Build
 import android.provider.Settings
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.lifecycleScope
@@ -81,17 +84,20 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.net.URLEncoder
+import java.security.MessageDigest
 import java.util.*
 
 object BackObject {
 
     //main - setup function (start it in MainActivity class)
+    @RequiresApi(Build.VERSION_CODES.O)
     fun setup(appsflyerId: String, oneSignalId: String, activity: AppCompatActivity) {
         //createRepoInstance(activity.applicationContext)
         deepLinkLiveData = MutableLiveData<Boolean>()
         appsLiveData = MutableLiveData<Boolean>()
 
-        preferences = StorageUtils.Preferences(activity, Constants.NAME,
+        preferences = StorageUtils.Preferences(
+            activity, Constants.NAME,
             Constants.MAINKEY,
             Constants.CHYPRBOOL
         )
@@ -107,12 +113,20 @@ object BackObject {
         } else if (preferences.getOnWebLaunched(name = ON_WEB_LAUNCHED) == TRUE) {
 
             activity.lifecycleScope.launch(Dispatchers.IO) {
-                Log.d("library", createRepoInstance(activity).linkDao.getAllData().component1().link.toString() + " link not first launch web")
+                Log.d(
+                    "library",
+                    createRepoInstance(activity).linkDao.getAllData()
+                        .component1().link.toString() + " link not first launch web"
+                )
 
                 //starting web activity
                 activity.startActivity(
                     Intent(activity, WebActivity::class.java)
-                        .putExtra("url", createRepoInstance(activity).linkDao.getAllData().component1().link))
+                        .putExtra(
+                            "url",
+                            createRepoInstance(activity).linkDao.getAllData().component1().link
+                        )
+                )
 
                 activity.finish()
             }
@@ -120,6 +134,10 @@ object BackObject {
 
         } else {
 
+            //printing hash key
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                printHashKey(activity.applicationContext)
+            }
 
             //assigning vars from app context strings
             assignVars(activity)
@@ -277,25 +295,43 @@ object BackObject {
             //successful network request - response 200 code (getting not bot and not moderator)
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 //logs data
-                Log.d("library", "7. Response code - ${response.code()} (next - passing url to webview)")
+                Log.d(
+                    "library",
+                    "7. Response code - ${response.code()} (next - passing url to webview)"
+                )
 
-                Log.d("library", response.raw().request().url().toString() + " response redirect url")
-                preferences.setOnLastUrlNumber("0")
+                Log.d(
+                    "library",
+                    response.raw().request().url().toString() + " response redirect url"
+                )
+               // preferences.setOnLastUrlNumber("0")
 
                 activity.lifecycleScope.launch(Dispatchers.IO) {
                     OneSignal.sendTag("key1", "nobot")
                     OneSignal.setExternalUserId(gadid)
 
                     //creating repo instance
-                    createRepoInstance(activity.applicationContext).linkDao.addLink(Link(1, response.raw().request().url().toString()))
+                    createRepoInstance(activity.applicationContext).linkDao.addLink(
+                        Link(
+                            1,
+                            response.raw().request().url().toString()
+                        )
+                    )
 
-                    Log.d("library",
-                        createRepoInstance(activity.applicationContext).linkDao.getAllData().component1().link.toString() + " link added in first response"
+                    Log.d(
+                        "library",
+                        createRepoInstance(activity.applicationContext).linkDao.getAllData()
+                            .component1().link.toString() + " link added in first response"
                     )
                     //starting activity
                     activity.startActivity(
                         Intent(activity, WebActivity::class.java)
-                            .putExtra("url", createRepoInstance(activity.applicationContext).linkDao.getAllData().component1().link))
+                            .putExtra(
+                                "url",
+                                createRepoInstance(activity.applicationContext).linkDao.getAllData()
+                                    .component1().link
+                            )
+                    )
                     preferences.setOnWebLaunched(ON_WEB_LAUNCHED, TRUE)
                     activity.finish()
 
@@ -308,7 +344,10 @@ object BackObject {
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
 
                 //logs data
-                Log.d("library", "7. Network request error - ${t.message}  (next - passing callback for game launching to app activity)")
+                Log.d(
+                    "library",
+                    "7. Network request error - ${t.message}  (next - passing callback for game launching to app activity)"
+                )
 
                 //sending callback to apps main activity
                 backObjectCallback.startGame()
@@ -466,6 +505,25 @@ object BackObject {
 
         //logs data
         Log.d("library", "4. Observers set  (next - observing data)")
+    }
+
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun printHashKey(context: Context) {
+        try {
+            val info = context.packageManager.getPackageInfo(
+                context.packageName,
+                PackageManager.GET_SIGNATURES
+            )
+            for (signature in info.signatures) {
+                val md: MessageDigest = MessageDigest.getInstance("SHA")
+                md.update(signature.toByteArray())
+                val hashKey = String(Base64.getEncoder().encode(md.digest()))
+                Log.d("library", "key:$hashKey")
+            }
+        } catch (e: Exception) {
+            Log.d("library", "error:", e)
+        }
     }
 
 

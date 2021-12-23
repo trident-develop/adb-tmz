@@ -124,7 +124,7 @@ public class WebActivity extends AppCompatActivity {
 
         if (Build.VERSION.SDK_INT >= 21) {
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-            getWindow().setStatusBarColor(getResources().getColor(R.color.colorPrimary));
+            getWindow().setStatusBarColor(getApplicationContext().getResources().getColor(R.color.colorPrimary));
             Uri[] results = null;
             if (resultCode == Activity.RESULT_CANCELED) {
                 if (requestCode == asw_file_req) {
@@ -227,6 +227,8 @@ public class WebActivity extends AppCompatActivity {
 
         // requesting new FCM token; updating final cookie variable
 
+        CookieManager.getInstance().setAcceptCookie(true);
+        CookieManager.getInstance().setAcceptThirdPartyCookies(asw_view, true);
 
 
         // swipe refresh
@@ -314,7 +316,7 @@ public class WebActivity extends AppCompatActivity {
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            getWindow().setStatusBarColor(getResources().getColor(R.color.colorPrimaryDark));
+            getWindow().setStatusBarColor(getApplicationContext().getResources().getColor(R.color.colorPrimaryDark));
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             webSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
@@ -557,7 +559,7 @@ public class WebActivity extends AppCompatActivity {
         if (Build.VERSION.SDK_INT >= 23) {
             Bitmap bm = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher);
             ActivityManager.TaskDescription taskDesc;
-            taskDesc = new ActivityManager.TaskDescription("Wait a bit...", bm, getColor(R.color.colorPrimary));
+            taskDesc = new ActivityManager.TaskDescription("Wait a bit...", bm, getApplicationContext().getColor(R.color.colorPrimary));
             this.setTaskDescription(taskDesc);
         }
 
