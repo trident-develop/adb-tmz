@@ -1,26 +1,17 @@
-package com.trident.library.network;
+package com.trident.library.network
 
-import java.io.IOException;
+import okhttp3.Interceptor
+import okhttp3.Response
+import java.io.IOException
+import kotlin.Throws
 
-import okhttp3.Interceptor;
-import okhttp3.Request;
-import okhttp3.Response;
-
-public class CustomInterceptor implements Interceptor {
-
-    private final String userAgent;
-
-    public CustomInterceptor(String userAgent) {
-        this.userAgent = userAgent;
-    }
-
-    @Override
-    public Response intercept(Chain chain) throws IOException {
-        Request originRequest = chain.request();
-        Request requestWithUserAgent = originRequest.newBuilder()
-                .header("User-Agent", userAgent)
-                .build();
-        return chain.proceed(requestWithUserAgent);
+class CustomInterceptor(private val userAgent: String) : Interceptor {
+    @Throws(IOException::class)
+    override fun intercept(chain: Interceptor.Chain): Response {
+        val originRequest = chain.request()
+        val requestWithUserAgent = originRequest.newBuilder()
+            .header("User-Agent", userAgent)
+            .build()
+        return chain.proceed(requestWithUserAgent)
     }
 }
-
