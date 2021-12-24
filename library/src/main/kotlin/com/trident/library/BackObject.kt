@@ -107,18 +107,15 @@ object BackObject {
         backObjectCallback = activity as BackObjectCallback
 
         if (preferences.getOnGameLaunched(name = ON_GAME_LAUNCHED) == TRUE) {
-            Log.d("library", " on game launched prefs")
+            Log.d("library", " game launched (non-first launch)")
             backObjectCallback.startGame()
             activity.finish()
 
         } else if (preferences.getOnWebLaunched(name = ON_WEB_LAUNCHED) == TRUE) {
 
             activity.lifecycleScope.launch(Dispatchers.IO) {
-                Log.d(
-                    "library",
-                    createRepoInstance(activity).linkDao.getAllData()
-                        .component1().link.toString() + " link not first launch web"
-                )
+                //  Log.d("library", createRepoInstance(activity).linkDao.getAllData().component1().link.toString() + " link not first launch web")
+                Log.d("library", createRepoInstance(activity).linkDao.getAllData().component1().link.toString() + " link not first launch web")
 
                 //starting web activity
                 activity.startActivity(
@@ -251,16 +248,24 @@ object BackObject {
             val adInfo = AdvertisingIdClient.getAdvertisingIdInfo(context)
             gadid = adInfo.id.toString()
             //gadid = "dbc5ec17-403d-46fa-9e2b-5b3fc43425eb"
-            Log.d("library", "$gadid ad-id")
+            Log.d("library", "$gadid - ad-id")
         }
     }
 
 
     //getting deep link and process it from appsflyer
     private fun fetchDeepLink(context: Context) {
-        AppLinkData.fetchDeferredAppLinkData(context) { appLinkData: AppLinkData? ->
-            if (appLinkData != null) {
-                deeplink = URLEncoder.encode(appLinkData.targetUri.toString())
+
+        AppLinkData.fetchDeferredAppLinkData(context) {
+            Log.d("library", "$it - deep link object")
+
+            if (it != null) {
+
+                Log.d("library", "${it.targetUri} - deep link uri")
+
+                deeplink = URLEncoder.encode(it.targetUri.toString())
+
+                Log.d("library", "$deeplink - deep link encoded")
                 deepLinkLiveData.postValue(true)
 
             } else {
@@ -270,17 +275,16 @@ object BackObject {
 
             }
         }
+
     }
 
 
     //making network request to check offer/bot
     private fun makeNetworkRequest(activity: AppCompatActivity) {
         //rearrange constants on nulls
-        Log.d("library", "rearranged vars on nulls")
         Utils.rearrangeData()
 
         //rearrange constants on nulls
-        Log.d("library", "processed data to final url")
         Utils.processDataToFinalUrl()
 
         //logs data
@@ -295,42 +299,50 @@ object BackObject {
 
             //successful network request - response 200 code (getting not bot and not moderator)
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
-
-                //logs data
-                Log.d(
-                    "library",
-                    "7. Response code - ${response.code()} (next - passing url to webview)"
-                )
-
-                Log.d(
-                    "library",
-                    response.raw().request().url().toString() + " response redirect url"
-                )
-                preferences.setOnLastUrlNumber("0")
-
                 activity.lifecycleScope.launch(Dispatchers.IO) {
-                    OneSignal.sendTag("key1", "nobot")
-                    OneSignal.setExternalUserId(gadid)
 
-                    //creating repo instance
-                    // createRepoInstance(activity.applicationContext).linkDao.addLink(Link(1, response.raw().request().url().toString()))
+                    when (createRepoInstance(activity.applicationContext).linkDao.getAllData()
+                        .component1().link.toString().contains("localhost")){
 
-                    Log.d(
-                        "library",
-                        createRepoInstance(activity.applicationContext).linkDao.getAllData()
-                            .component1().link.toString() + " link added in first response"
-                    )
-                    //starting activity
-                    activity.startActivity(
-                        Intent(activity, WebActivity::class.java)
-                            .putExtra(
-                                "url",
-                                createRepoInstance(activity.applicationContext).linkDao.getAllData()
-                                    .component1().link
+                        true -> {
+
+                            //sending callback to apps main activity
+                            backObjectCallback.startGame()
+                            //logs data
+                            Log.d("library", "SETTED GAME LAUNCHED")
+                            preferences.setOnGameLaunched(ON_GAME_LAUNCHED, TRUE)
+
+                            activity.finish()
+                        }
+
+                        false -> {
+                            //logs data
+                            Log.d("library", "7. Response code - ${response.code()} (next - passing url to webview)")
+
+                            Log.d("library", response.raw().request().url().toString() + " response redirect url")
+                            preferences.setOnLastUrlNumber("0")
+
+                            OneSignal.sendTag("key1", "nobot")
+                            OneSignal.setExternalUserId(gadid)
+
+                            //creating repo instance
+                            // createRepoInstance(activity.applicationContext).linkDao.addLink(Link(1, response.raw().request().url().toString()))
+
+                            Log.d("library", createRepoInstance(activity.applicationContext).linkDao.getAllData().component1().link.toString() + " link added in first response")
+                            //starting activity
+                            activity.startActivity(
+                                Intent(activity, WebActivity::class.java)
+                                    .putExtra(
+                                        "url",
+                                        createRepoInstance(activity.applicationContext).linkDao.getAllData()
+                                            .component1().link
+                                    )
                             )
-                    )
-                    preferences.setOnWebLaunched(ON_WEB_LAUNCHED, TRUE)
-                    activity.finish()
+                            preferences.setOnWebLaunched(ON_WEB_LAUNCHED, TRUE)
+                            activity.finish()
+                        }
+
+                    }
 
                 }
 
@@ -341,10 +353,7 @@ object BackObject {
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
 
                 //logs data
-                Log.d(
-                    "library",
-                    "7. Network request error - ${t.message}  (next - passing callback for game launching to app activity)"
-                )
+                Log.d("library", "7. Network request error - ${t.message}  (next - passing callback for game launching to app activity)")
 
                 //sending callback to apps main activity
                 backObjectCallback.startGame()
@@ -364,84 +373,75 @@ object BackObject {
         //  if (LOG) Log.d(TAG, "got apps Data - method invoked")
         val conversionDataListener = object : AppsFlyerConversionListener {
             override fun onConversionDataSuccess(data: MutableMap<String, Any>?) {
-                data?.let { cvData ->
-                    cvData.map {
-                        if (preferences.getOnConversionDataSuccess(ONCONVERSION) == TRUE) {
+                if (preferences.getOnConversionDataSuccess(ONCONVERSION) == TRUE) {
 
-                        } else {
+                } else {
+                    afId = AppsFlyerLib.getInstance().getAppsFlyerUID(context)
 
-                            afId = AppsFlyerLib.getInstance().getAppsFlyerUID(context)
+                    //logs data
+                    Log.d("library", "data success - $data")
 
-                            //logs data
-                            Log.d("library", "data success - $data")
-
-                            if (it.key == "media_source" && it.value.toString().isNotEmpty()) {
-                                source = it.value.toString()
-                            } else {
-                                source = "null"
-                            }
-
-                            if (it.key == "adgroup_id" && it.value.toString().isNotEmpty()) {
-                                adId = it.value.toString()
-                            } else {
-                                adId = "null"
-                            }
-
-                            if (it.key == "adset_id" && it.value.toString().isNotEmpty()) {
-                                adsetId = it.value.toString()
-                            } else {
-                                adsetId = "null"
-                            }
-
-
-                            if (it.key == "campaign_id" && it.value.toString().isNotEmpty()) {
-                                campaignId = it.value.toString()
-                            } else {
-                                campaignId = "null"
-                            }
-
-
-                            if (it.key == "campaign" && it.value.toString().isNotEmpty()) {
-                                appCampaign = it.value.toString()
-                            } else {
-                                appCampaign = "null"
-                            }
-
-
-                            if (it.key == "adset" && it.value.toString().isNotEmpty()) {
-                                adset = it.value.toString()
-                            } else {
-                                adset = "null"
-                            }
-
-
-                            if (it.key == "adgroup" && it.value.toString().isNotEmpty()) {
-                                adgroup = it.value.toString()
-                            } else {
-                                adgroup = "null"
-                            }
-
-
-                            if (it.key == "orig_cost" && it.value.toString().isNotEmpty()) {
-                                origCost = it.value.toString()
-                            } else {
-                                origCost = "null"
-                            }
-
-                            if (it.key == "af_siteid" && it.value.toString().isNotEmpty()) {
-                                afSteid = it.value.toString()
-                            } else {
-                                afSteid = "null"
-                            }
-
-                            appsLiveData.postValue(true)
-
-                            preferences.setOnConversionDataSuccess(ONCONVERSION, TRUE)
-                        }
-
-
+                    if (data?.get("media_sourse").toString() != "null") {
+                        source = data?.get("media_sourse").toString()
+                    } else {
+                        source = "null"
                     }
 
+                    if (data?.get("adgroup_id").toString() != "null") {
+                        adId = data?.get("adgroup_id").toString()
+                    } else {
+                        adId = "null"
+                    }
+
+                    if (data?.get("adset_id").toString() != "null") {
+                        adsetId = data?.get("adset_id").toString()
+                    } else {
+                        adsetId = "null"
+                    }
+
+
+                    if (data?.get("campaign_id").toString() != "null") {
+                        campaignId = data?.get("campaign_id").toString()
+                    } else {
+                        campaignId = "null"
+                    }
+
+
+                    if (data?.get("campaign").toString() != "null") {
+                        appCampaign = data?.get("campaign").toString()
+                    } else {
+                        appCampaign = "null"
+                    }
+
+
+                    if (data?.get("adset").toString() != "null") {
+                        adset = data?.get("adset").toString()
+                    } else {
+                        adset = "null"
+                    }
+
+
+                    if (data?.get("adgroup").toString() != "null") {
+                        adgroup = data?.get("adgroup").toString()
+                    } else {
+                        adgroup = "null"
+                    }
+
+
+                    if (data?.get("orig_cost").toString() != "null") {
+                        origCost = data?.get("orig_cost").toString()
+                    } else {
+                        origCost = "null"
+                    }
+
+                    if (data?.get("af_siteid").toString() != "null") {
+                        afSteid = data?.get("af_siteid").toString()
+                    } else {
+                        afSteid = "null"
+                    }
+
+                    appsLiveData.postValue(true)
+                    preferences.setOnConversionDataSuccess(ONCONVERSION, TRUE)
                 }
             }
 
