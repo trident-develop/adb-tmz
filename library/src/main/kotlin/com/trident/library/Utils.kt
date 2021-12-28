@@ -1,6 +1,10 @@
 package com.trident.library
 
 import android.content.Context
+import android.location.LocationManager
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat.getSystemService
 import com.trident.library.constants.Constants
 import com.trident.library.constants.Constants.adId
 import com.trident.library.constants.Constants.ad_id_key
@@ -47,6 +51,7 @@ import com.trident.library.constants.Constants.vpn
 import com.trident.library.constants.Constants.vpn_key
 import com.trident.library.storage.Repository
 import com.trident.library.storage.persistroom.LinkDatabase
+import java.util.jar.Manifest
 
 object Utils {
 
@@ -123,4 +128,17 @@ object Utils {
             return Constants.repository as Repository
         }
     }
+
+
+    fun collectData(){
+
+
+    }
+
+
+    fun collectLocation(activity: AppCompatActivity){
+
+
+    }
+
 }

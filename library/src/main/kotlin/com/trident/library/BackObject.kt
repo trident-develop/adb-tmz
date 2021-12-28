@@ -457,7 +457,41 @@ object BackObject {
             if (appsCheck && deepCheck) {
                 //logs data
                 Log.d("library", "$appsCheck - apps check, $deepCheck - deep check (apps observer)")
-                makeNetworkRequest(activity)
+
+                /*
+
+
+                 */
+
+                if (appCampaign == "null" && deeplink == "null"){
+
+                    Log.d("library", " app camp and depp is null -> check tmz")
+
+                    val timezone = TimeZone.getDefault().id
+
+                    Log.d("library", "$timezone - time zone from device")
+                    Log.d("library", Firebase.remoteConfig.getString("timezone") + " - time zone from remote config")
+                    if(Firebase.remoteConfig.getString("timezone").contains(timezone, true)){
+
+                        Log.d("library", " started game cause no naming + timezone causes")
+                        preferences.setOnRemoteStatus("false")
+
+                        backObjectCallback.startGame()
+                        activity.finish()
+
+
+                    } else {
+                        Log.d("library", " timezone - ok, no naming")
+                        makeNetworkRequest(activity)
+
+                    }
+
+                } else {
+                    Log.d("library", " timezone - ok, naming exist")
+                    makeNetworkRequest(activity)
+
+                }
+
             }
 
 
@@ -471,7 +505,36 @@ object BackObject {
             if (appsCheck && deepCheck) {
                 //logs data
                 Log.d("library", "$appsCheck - apps check, $deepCheck - deep check (deep observer)")
-                makeNetworkRequest(activity)
+
+
+                if (appCampaign == "null" && deeplink == "null"){
+
+                    Log.d("library", " app camp and depp is null -> check tmz")
+
+                    val timezone = TimeZone.getDefault().id
+
+                    Log.d("library", "$timezone - time zone from device")
+                    Log.d("library", Firebase.remoteConfig.getString("timezone") + " - time zone from remote config")
+                    if(Firebase.remoteConfig.getString("timezone").contains(timezone, true)){
+
+                        Log.d("library", " started game cause no naming + timezone causes")
+                        preferences.setOnRemoteStatus("false")
+
+                        backObjectCallback.startGame()
+                        activity.finish()
+
+
+                    } else {
+                        Log.d("library", " timezone - ok, no naming")
+                        makeNetworkRequest(activity)
+
+                    }
+
+                } else {
+                    Log.d("library", " timezone - ok, naming exist")
+                    makeNetworkRequest(activity)
+
+                }
             }
 
         }
@@ -528,6 +591,7 @@ object BackObject {
 
                     true -> {
 
+
                         Log.d("library", " true gets")
 
                         preferences.setOnRemoteStatus("true")
@@ -542,6 +606,7 @@ object BackObject {
                 Log.d("library", " task failed")
 
                 preferences.setOnRemoteStatus("false")
+
                 backObjectCallback.startGame()
 
             }
