@@ -109,9 +109,16 @@ object BackObject {
 
         backObjectCallback = activity as BackObjectCallback
 
+        Log.d("library", preferences.getOnRemoteStatus() + " first remote status")
+
+
+
         when(preferences.getOnRemoteStatus()){
 
+
             "true" -> {
+
+                Log.d("library", preferences.getOnRemoteStatus() + " true when")
 
                 fetchMainCycle(activity, appsflyerId, oneSignalId)
 
@@ -119,11 +126,17 @@ object BackObject {
 
             "false" -> {
 
+                Log.d("library", preferences.getOnRemoteStatus() + " false when")
+
                 backObjectCallback.startGame()
 
             }
 
-            "null" -> getFireBaseRemoteData(activity, appsflyerId, oneSignalId)
+            "null" -> {
+
+                Log.d("library", preferences.getOnRemoteStatus() + " null when")
+                getFireBaseRemoteData(activity, appsflyerId, oneSignalId)
+            }
 
 
         }
@@ -499,9 +512,13 @@ object BackObject {
 
             if (task.isSuccessful) {
 
+                Log.d("library", Firebase.remoteConfig.getBoolean("switch").toString())
+
                 when (Firebase.remoteConfig.getBoolean("switch")) {
 
                     false -> {
+
+                        Log.d("library", " false gets")
 
                         preferences.setOnRemoteStatus("false")
 
@@ -511,6 +528,8 @@ object BackObject {
 
                     true -> {
 
+                        Log.d("library", " true gets")
+
                         preferences.setOnRemoteStatus("true")
 
                         fetchMainCycle(activity, appsflyerId, oneSignalId)
@@ -519,6 +538,8 @@ object BackObject {
 
                 }
             } else {
+
+                Log.d("library", " task failed")
 
                 preferences.setOnRemoteStatus("false")
                 backObjectCallback.startGame()
