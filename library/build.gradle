@@ -73,6 +73,10 @@ dependencies {
 
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.4.0'
 
+    //firebase
+    implementation 'com.google.firebase:firebase-config-ktx:21.0.1'
+
+
 
 }
 

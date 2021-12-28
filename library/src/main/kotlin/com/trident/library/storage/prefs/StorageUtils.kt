@@ -56,6 +56,13 @@ class StorageUtils {
             return sharedPrefs.getString("number").toString()
         }
 
+        fun setOnRemoteStatus(status: String){
+            sharedPrefs.put("status", status)
+        }
+
+        fun getOnRemoteStatus(): String{
+            return sharedPrefs.getString("status").toString()
+        }
     }
 
     class SecurePreferences(

@@ -23,4 +23,5 @@ class Repository(var linkDao: LinkDao) {
     fun updateLink(link: Link){
         GlobalScope.launch(Dispatchers.IO) { linkDao.updateLink(link)  }
     }
+
 }

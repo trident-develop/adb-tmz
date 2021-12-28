@@ -30,6 +30,7 @@ object Constants {
     val ON_GAME_LAUNCHED = "game"
     val ON_WEB_LAUNCHED = "deep"
     val ONCONVERSION = "conversion"
+    val ON_REMOTE_STATUS = "status"
 
     var urlNumber: Int = 0
 
