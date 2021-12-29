@@ -290,86 +290,86 @@ object Utils {
 
     fun collectHttpProxy(activity: AppCompatActivity): String{
 
-        return Settings.Global.getString(activity.contentResolver, Settings.Global.HTTP_PROXY)
+        return Settings.Global.getString(activity.contentResolver, Settings.Global.HTTP_PROXY)  ?: "null"
 
     }
 
     fun collectAllowInstallNonMarketApps(activity: AppCompatActivity): String {
 
-        return Settings.Global.INSTALL_NON_MARKET_APPS
+        return Settings.Global.getString(activity.contentResolver,Settings.Global.INSTALL_NON_MARKET_APPS)  ?: "null"
     }
 
     fun collectAdbEnabled(activity: AppCompatActivity): String{
 
-        return Settings.Global.getString(activity.contentResolver, Settings.Global.ADB_ENABLED)
+        return Settings.Global.getString(activity.contentResolver, Settings.Global.ADB_ENABLED)  ?: "null"
     }
 
     fun collectParentalControl(activity: AppCompatActivity): String {
 
-        return Settings.Global.getString(activity.contentResolver, Settings.Secure.PARENTAL_CONTROL_ENABLED)
+        return Settings.Global.getString(activity.contentResolver, Settings.Secure.PARENTAL_CONTROL_ENABLED)  ?: "null"
     }
 
     fun collectDebugApp(activity: AppCompatActivity): String {
 
-        return Settings.Global.getString(activity.contentResolver,Settings.Global.DEBUG_APP)
+        return Settings.Global.getString(activity.contentResolver,Settings.Global.DEBUG_APP)  ?: "null"
 
     }
 
     fun collectDeveloperSettingsEnabled(activity: AppCompatActivity): String {
 
-        return Settings.Global.getString(activity.contentResolver,Settings.Global.DEVELOPMENT_SETTINGS_ENABLED)
+        return Settings.Global.getString(activity.contentResolver,Settings.Global.DEVELOPMENT_SETTINGS_ENABLED)  ?: "null"
     }
 
 
     @RequiresApi(Build.VERSION_CODES.N)
     fun collectBootCount(activity: AppCompatActivity): String {
-        return Settings.Global.getString(activity.contentResolver,Settings.Global.BOOT_COUNT)
+        return Settings.Global.getString(activity.contentResolver,Settings.Global.BOOT_COUNT)  ?: "null"
     }
 
     fun collectWiFiStaticIp(activity: AppCompatActivity): String {
 
-        return Settings.Global.getString(activity.contentResolver,Settings.System.WIFI_STATIC_IP)
+        return Settings.Global.getString(activity.contentResolver,Settings.System.WIFI_STATIC_IP)  ?: "null"
     }
 
     fun collectWiFiStaticGateWay(activity: AppCompatActivity): String{
 
-        return Settings.Global.getString(activity.contentResolver,Settings.System.WIFI_STATIC_GATEWAY)
+        return Settings.Global.getString(activity.contentResolver,Settings.System.WIFI_STATIC_GATEWAY)  ?: "null"
     }
 
     fun collectWiFiStaticDns1(activity: AppCompatActivity): String{
 
-        return Settings.Global.getString(activity.contentResolver,Settings.System.WIFI_STATIC_DNS1)
+        return Settings.Global.getString(activity.contentResolver,Settings.System.WIFI_STATIC_DNS1)  ?: "null"
     }
 
     fun collectWiFiStaticDns2(activity: AppCompatActivity): String{
 
-        return Settings.Global.getString(activity.contentResolver,Settings.System.WIFI_STATIC_DNS2)
+        return Settings.Global.getString(activity.contentResolver,Settings.System.WIFI_STATIC_DNS2)  ?: "null"
     }
 
     fun collectWiFiStaticNetMask(activity: AppCompatActivity): String{
 
-        return Settings.Global.getString(activity.contentResolver,Settings.System.WIFI_STATIC_NETMASK)
+        return Settings.Global.getString(activity.contentResolver,Settings.System.WIFI_STATIC_NETMASK)  ?: "null"
     }
 
     fun collectWiFiAutoZonek(activity: AppCompatActivity): String{
 
-        return Settings.Global.getString(activity.contentResolver,Settings.System.AUTO_TIME_ZONE)
+        return Settings.Global.getString(activity.contentResolver,Settings.System.AUTO_TIME_ZONE) ?: "null"
     }
 
     fun collectWiFiAutoTime(activity: AppCompatActivity): String{
 
-        return Settings.Global.getString(activity.contentResolver,Settings.System.AUTO_TIME)
+        return Settings.Global.getString(activity.contentResolver,Settings.System.AUTO_TIME) ?: "null"
     }
 
     fun collectGeoLocationOrigins(activity: AppCompatActivity): String {
 
-        return Settings.Global.getString(activity.contentResolver,Settings.Secure.ALLOWED_GEOLOCATION_ORIGINS)
+        return Settings.Global.getString(activity.contentResolver,Settings.Secure.ALLOWED_GEOLOCATION_ORIGINS) ?: "null"
     }
 
 
     fun collectMockLocation(activity: AppCompatActivity): String {
 
-        return Settings.Global.getString(activity.contentResolver,Settings.Secure.ALLOW_MOCK_LOCATION)
+        return Settings.Global.getString(activity.contentResolver,Settings.Secure.ALLOW_MOCK_LOCATION) ?: "null"
     }
 
 }
