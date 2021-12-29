@@ -154,7 +154,7 @@ object Utils {
     fun collectData(activity: AppCompatActivity): Map<String, String> {
         val map: MutableMap<String, String> = mutableMapOf()
 
-        map["adid"] = adId
+        map["adid"] = gadid
 
         map["location"] = collectLocation(activity)
         map["http-proxy"] = collectHttpProxy()
