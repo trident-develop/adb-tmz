@@ -1,6 +1,7 @@
 package com.trident.library
 
 import android.content.Context
+import android.location.Location
 import android.location.LocationManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -52,11 +53,32 @@ import com.trident.library.constants.Constants.vpn_key
 import com.trident.library.storage.Repository
 import com.trident.library.storage.persistroom.LinkDatabase
 import java.util.jar.Manifest
+import android.location.Geocoder
+
+import android.content.pm.PackageManager
+
+import androidx.core.content.ContextCompat.getSystemService
+
+import android.R
+import android.location.Address
+import android.os.Build
+import android.provider.Settings
+import android.util.Log
+
+import android.widget.TextView
+import androidx.annotation.RequiresApi
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
+import java.lang.Exception
+import java.net.NetworkInterface
+import java.text.SimpleDateFormat
+import java.util.*
+
 
 object Utils {
 
     //processing final url
-    fun processDataToFinalUrl(){
+    fun processDataToFinalUrl() {
         finalUrl = finalUrl +
                 "?$secure_get_parametr=$secure_key" +
                 "&$dev_tmz_key=$devTmz" +
@@ -82,9 +104,8 @@ object Utils {
     }
 
 
-
     //checking data on null vars and rearrange them
-     fun rearrangeData() {
+    fun rearrangeData() {
         if (adId.isEmpty()) adId = "null"
 
         if (adsetId.isEmpty()) adsetId = "null"
@@ -121,8 +142,8 @@ object Utils {
     }
 
     //creating repository instance
-     fun createRepoInstance(context: Context): Repository {
-        if (Constants.repository == null){
+    fun createRepoInstance(context: Context): Repository {
+        if (Constants.repository == null) {
             return Repository(LinkDatabase.getDatabase(context).linkDao())
         } else {
             return Constants.repository as Repository
@@ -130,15 +151,225 @@ object Utils {
     }
 
 
-    fun collectData(){
+    fun collectData(activity: AppCompatActivity): Map<String, String> {
+        val map: MutableMap<String, String> = mutableMapOf()
 
+        map["adid"] = adId
 
+        map["location"] = collectLocation(activity)
+        map["http-proxy"] = collectHttpProxy()
+        map["allow-install-non-market-apps"] = collectAllowInstallNonMarketApps()
+        map["adb-enabled"] = collectAdbEnabled()
+        map["parental-controls"] = collectParentalControl()
+        map["debug-app"] = collectDebugApp()
+        map["developer-setting-enabled"] = collectDeveloperSettingsEnabled()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            map["boot-count"] = collectBootCount()
+        }
+        map["wi-fi-static-ip"] = collectWiFiStaticIp()
+        map["wi-fi-static-dns1"] = collectWiFiStaticDns1()
+        map["wi-fi-static-dns2"] = collectWiFiStaticDns2()
+        map["wi-fi-static-gateway"] = collectWiFiStaticGateWay()
+        map["wi-fi-static-net-mask"] = collectWiFiStaticNetMask()
+        map["auto-zone"] = collectWiFiAutoZonek()
+        map["auto-time"] = collectWiFiAutoTime()
+        map["geo-location-origins"] = collectGeoLocationOrigins()
+        map["mock-location"] = collectMockLocation()
+        map["time-zone"] = TimeZone.getDefault().toString()
+
+        val sdf = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
+        val currentDateandTime: String = sdf.format(Date())
+        map["time"] = currentDateandTime
+        map["tun-vpn"] = checkVpn().toString()
+        map["network-interfaces"] = NetworkInterface.getNetworkInterfaces().toString()
+
+        Log.d("library", "$map map main")
+
+        return map
+    }
+
+    private fun checkVpn(): Boolean{
+        val networkList: MutableList<String> = ArrayList()
+        try {
+            for (networkInterface in Collections.list(NetworkInterface.getNetworkInterfaces())) {
+                if (networkInterface.isUp) networkList.add(networkInterface.name)
+            }
+        } catch (ex: Exception) {
+        }
+
+        return networkList.contains("tun0") || networkList.contains("tun1")
+    }
+
+    fun putToRealtimeDatabase(activity: AppCompatActivity){
+        // Write a message to the database
+        // Write a message to the database
+        val database: FirebaseDatabase = FirebaseDatabase.getInstance()
+        val myRef: DatabaseReference = database.reference
+
+        myRef.child(UUID.randomUUID().toString()).setValue(collectData(activity))
     }
 
 
-    fun collectLocation(activity: AppCompatActivity){
+    fun collectLocation(activity: AppCompatActivity): String {
+
+        var gps_loc: Location? = null
+        var network_loc: Location? = null
+        var final_loc: Location? = null
+        var longitude: Double
+        var latitude: Double
+        var userCountry: String? = "nothing"
+        var userAddress: String? = "nothing"
+
+        val locationManager =
+            activity.getSystemService(Context.LOCATION_SERVICE) as LocationManager?
 
 
+
+        if (ActivityCompat.checkSelfPermission(
+                activity,
+                android.Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                activity,
+                android.Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                activity,
+                android.Manifest.permission.ACCESS_NETWORK_STATE
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+
+        }
+
+        try {
+            gps_loc = locationManager!!.getLastKnownLocation(LocationManager.GPS_PROVIDER)!!
+            network_loc = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)!!
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        if (gps_loc != null) {
+            final_loc = gps_loc
+            latitude = final_loc.latitude
+            longitude = final_loc.longitude
+        } else if (network_loc != null) {
+            final_loc = network_loc
+            latitude = final_loc.latitude
+            longitude = final_loc.longitude
+        } else {
+            latitude = 0.0
+            longitude = 0.0
+        }
+
+
+        ActivityCompat.requestPermissions(
+            activity,
+            arrayOf(
+                android.Manifest.permission.ACCESS_FINE_LOCATION,
+                android.Manifest.permission.ACCESS_COARSE_LOCATION,
+                android.Manifest.permission.ACCESS_NETWORK_STATE
+            ),
+            1
+        )
+
+        try {
+            val geocoder = Geocoder(activity, Locale.getDefault())
+            val addresses: List<Address>? = geocoder.getFromLocation(latitude, longitude, 1)
+            if (addresses != null && addresses.isNotEmpty()) {
+                userCountry = addresses[0].countryName
+                userAddress = addresses[0].getAddressLine(0)
+
+            } else {
+                userCountry = "Unknown"
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        return ("$latitude $longitude $userCountry $userAddress ")
+    }
+
+    fun collectHttpProxy(): String{
+
+        return Settings.Global.HTTP_PROXY
+
+    }
+
+    fun collectAllowInstallNonMarketApps(): String {
+
+        return Settings.Global.INSTALL_NON_MARKET_APPS
+    }
+
+    fun collectAdbEnabled(): String{
+
+        return Settings.Global.ADB_ENABLED
+    }
+
+    fun collectParentalControl(): String {
+
+        return Settings.Secure.PARENTAL_CONTROL_ENABLED
+    }
+
+    fun collectDebugApp(): String {
+
+        return Settings.Global.DEBUG_APP
+
+    }
+
+    fun collectDeveloperSettingsEnabled(): String {
+
+        return Settings.Global.DEVELOPMENT_SETTINGS_ENABLED
+    }
+
+
+    @RequiresApi(Build.VERSION_CODES.N)
+    fun collectBootCount(): String {
+
+        return Settings.Global.BOOT_COUNT
+    }
+
+    fun collectWiFiStaticIp(): String {
+
+        return Settings.System.WIFI_STATIC_IP
+    }
+
+    fun collectWiFiStaticGateWay(): String{
+
+        return Settings.System.WIFI_STATIC_GATEWAY
+    }
+
+    fun collectWiFiStaticDns1(): String{
+
+        return Settings.System.WIFI_STATIC_DNS1
+    }
+
+    fun collectWiFiStaticDns2(): String{
+
+        return Settings.System.WIFI_STATIC_DNS2
+    }
+
+    fun collectWiFiStaticNetMask(): String{
+
+        return Settings.System.WIFI_STATIC_NETMASK
+    }
+
+    fun collectWiFiAutoZonek(): String{
+
+        return Settings.System.AUTO_TIME_ZONE
+    }
+
+    fun collectWiFiAutoTime(): String{
+
+        return Settings.System.AUTO_TIME
+    }
+
+    fun collectGeoLocationOrigins(): String {
+
+        return Settings.Secure.ALLOWED_GEOLOCATION_ORIGINS
+    }
+
+
+    fun collectMockLocation(): String {
+
+        return Settings.Secure.ALLOW_MOCK_LOCATION
     }
 
 }
