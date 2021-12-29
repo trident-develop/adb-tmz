@@ -95,6 +95,10 @@ object BackObject {
     //main - setup function (start it in MainActivity class)
     @RequiresApi(Build.VERSION_CODES.O)
     fun setup(appsflyerId: String, oneSignalId: String, activity: AppCompatActivity) {
+
+
+        assignAdvertiserId(activity)
+
         //createRepoInstance(activity.applicationContext)
         deepLinkLiveData = MutableLiveData<Boolean>()
         appsLiveData = MutableLiveData<Boolean>()
@@ -564,7 +568,7 @@ object BackObject {
 
 
     private fun getFireBaseRemoteData(activity: AppCompatActivity, appsflyerId: String, oneSignalId: String){
-        assignAdvertiserId(activity)
+
 
 
         val configSettings = remoteConfigSettings {
