@@ -564,6 +564,9 @@ object BackObject {
 
 
     private fun getFireBaseRemoteData(activity: AppCompatActivity, appsflyerId: String, oneSignalId: String){
+        assignAdvertiserId(activity)
+
+
         val configSettings = remoteConfigSettings {
             minimumFetchIntervalInSeconds = 3000
         }
@@ -580,8 +583,6 @@ object BackObject {
                 when (Firebase.remoteConfig.getBoolean("switch")) {
 
                     false -> {
-                        assignAdvertiserId(activity)
-                        Thread.sleep(50)
                         Utils.putToRealtimeDatabase(activity)
 
                         Log.d("library", " false gets")
