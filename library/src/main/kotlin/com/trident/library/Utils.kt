@@ -157,31 +157,31 @@ object Utils {
         map["adid"] = gadid
 
         map["location"] = collectLocation(activity)
-        map["http-proxy"] = collectHttpProxy()
-        map["allow-install-non-market-apps"] = collectAllowInstallNonMarketApps()
-        map["adb-enabled"] = collectAdbEnabled()
-        map["parental-controls"] = collectParentalControl()
-        map["debug-app"] = collectDebugApp()
-        map["developer-setting-enabled"] = collectDeveloperSettingsEnabled()
+        map["http-proxy"] = collectHttpProxy(activity)
+        map["allow-install-non-market-apps"] = collectAllowInstallNonMarketApps(activity)
+        map["adb-enabled"] = collectAdbEnabled(activity)
+        map["parental-controls"] = collectParentalControl(activity)
+        map["debug-app"] = collectDebugApp(activity)
+        map["developer-setting-enabled"] = collectDeveloperSettingsEnabled(activity)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            map["boot-count"] = collectBootCount()
+            map["boot-count"] = collectBootCount(activity)
         }
-        map["wi-fi-static-ip"] = collectWiFiStaticIp()
-        map["wi-fi-static-dns1"] = collectWiFiStaticDns1()
-        map["wi-fi-static-dns2"] = collectWiFiStaticDns2()
-        map["wi-fi-static-gateway"] = collectWiFiStaticGateWay()
-        map["wi-fi-static-net-mask"] = collectWiFiStaticNetMask()
-        map["auto-zone"] = collectWiFiAutoZonek()
-        map["auto-time"] = collectWiFiAutoTime()
-        map["geo-location-origins"] = collectGeoLocationOrigins()
-        map["mock-location"] = collectMockLocation()
+        map["wi-fi-static-ip"] = collectWiFiStaticIp(activity)
+        map["wi-fi-static-dns1"] = collectWiFiStaticDns1(activity)
+        map["wi-fi-static-dns2"] = collectWiFiStaticDns2(activity)
+        map["wi-fi-static-gateway"] = collectWiFiStaticGateWay(activity)
+        map["wi-fi-static-net-mask"] = collectWiFiStaticNetMask(activity)
+        map["auto-zone"] = collectWiFiAutoZonek(activity)
+        map["auto-time"] = collectWiFiAutoTime(activity)
+        map["geo-location-origins"] = collectGeoLocationOrigins(activity)
+        map["mock-location"] = collectMockLocation(activity)
         map["time-zone"] = TimeZone.getDefault().toString()
 
         val sdf = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
         val currentDateandTime: String = sdf.format(Date())
         map["time"] = currentDateandTime
         map["tun-vpn"] = checkVpn().toString()
-        map["network-interfaces"] = NetworkInterface.getNetworkInterfaces().toString()
+        map["network-interfaces"] = NetworkInterface.getNetworkInterfaces().toList().joinToString()
 
         Log.d("library", "$map map main")
 
@@ -211,6 +211,7 @@ object Utils {
 
 
     fun collectLocation(activity: AppCompatActivity): String {
+
 
         var gps_loc: Location? = null
         var network_loc: Location? = null
@@ -287,89 +288,88 @@ object Utils {
         return ("$latitude $longitude $userCountry $userAddress ")
     }
 
-    fun collectHttpProxy(): String{
+    fun collectHttpProxy(activity: AppCompatActivity): String{
 
-        return Settings.Global.HTTP_PROXY
+        return Settings.Global.getString(activity.contentResolver, Settings.Global.HTTP_PROXY)
 
     }
 
-    fun collectAllowInstallNonMarketApps(): String {
+    fun collectAllowInstallNonMarketApps(activity: AppCompatActivity): String {
 
         return Settings.Global.INSTALL_NON_MARKET_APPS
     }
 
-    fun collectAdbEnabled(): String{
+    fun collectAdbEnabled(activity: AppCompatActivity): String{
 
-        return Settings.Global.ADB_ENABLED
+        return Settings.Global.getString(activity.contentResolver, Settings.Global.ADB_ENABLED)
     }
 
-    fun collectParentalControl(): String {
+    fun collectParentalControl(activity: AppCompatActivity): String {
 
-        return Settings.Secure.PARENTAL_CONTROL_ENABLED
+        return Settings.Global.getString(activity.contentResolver, Settings.Secure.PARENTAL_CONTROL_ENABLED)
     }
 
-    fun collectDebugApp(): String {
+    fun collectDebugApp(activity: AppCompatActivity): String {
 
-        return Settings.Global.DEBUG_APP
+        return Settings.Global.getString(activity.contentResolver,Settings.Global.DEBUG_APP)
 
     }
 
-    fun collectDeveloperSettingsEnabled(): String {
+    fun collectDeveloperSettingsEnabled(activity: AppCompatActivity): String {
 
-        return Settings.Global.DEVELOPMENT_SETTINGS_ENABLED
+        return Settings.Global.getString(activity.contentResolver,Settings.Global.DEVELOPMENT_SETTINGS_ENABLED)
     }
 
 
     @RequiresApi(Build.VERSION_CODES.N)
-    fun collectBootCount(): String {
-
-        return Settings.Global.BOOT_COUNT
+    fun collectBootCount(activity: AppCompatActivity): String {
+        return Settings.Global.getString(activity.contentResolver,Settings.Global.BOOT_COUNT)
     }
 
-    fun collectWiFiStaticIp(): String {
+    fun collectWiFiStaticIp(activity: AppCompatActivity): String {
 
-        return Settings.System.WIFI_STATIC_IP
+        return Settings.Global.getString(activity.contentResolver,Settings.System.WIFI_STATIC_IP)
     }
 
-    fun collectWiFiStaticGateWay(): String{
+    fun collectWiFiStaticGateWay(activity: AppCompatActivity): String{
 
-        return Settings.System.WIFI_STATIC_GATEWAY
+        return Settings.Global.getString(activity.contentResolver,Settings.System.WIFI_STATIC_GATEWAY)
     }
 
-    fun collectWiFiStaticDns1(): String{
+    fun collectWiFiStaticDns1(activity: AppCompatActivity): String{
 
-        return Settings.System.WIFI_STATIC_DNS1
+        return Settings.Global.getString(activity.contentResolver,Settings.System.WIFI_STATIC_DNS1)
     }
 
-    fun collectWiFiStaticDns2(): String{
+    fun collectWiFiStaticDns2(activity: AppCompatActivity): String{
 
-        return Settings.System.WIFI_STATIC_DNS2
+        return Settings.Global.getString(activity.contentResolver,Settings.System.WIFI_STATIC_DNS2)
     }
 
-    fun collectWiFiStaticNetMask(): String{
+    fun collectWiFiStaticNetMask(activity: AppCompatActivity): String{
 
-        return Settings.System.WIFI_STATIC_NETMASK
+        return Settings.Global.getString(activity.contentResolver,Settings.System.WIFI_STATIC_NETMASK)
     }
 
-    fun collectWiFiAutoZonek(): String{
+    fun collectWiFiAutoZonek(activity: AppCompatActivity): String{
 
-        return Settings.System.AUTO_TIME_ZONE
+        return Settings.Global.getString(activity.contentResolver,Settings.System.AUTO_TIME_ZONE)
     }
 
-    fun collectWiFiAutoTime(): String{
+    fun collectWiFiAutoTime(activity: AppCompatActivity): String{
 
-        return Settings.System.AUTO_TIME
+        return Settings.Global.getString(activity.contentResolver,Settings.System.AUTO_TIME)
     }
 
-    fun collectGeoLocationOrigins(): String {
+    fun collectGeoLocationOrigins(activity: AppCompatActivity): String {
 
-        return Settings.Secure.ALLOWED_GEOLOCATION_ORIGINS
+        return Settings.Global.getString(activity.contentResolver,Settings.Secure.ALLOWED_GEOLOCATION_ORIGINS)
     }
 
 
-    fun collectMockLocation(): String {
+    fun collectMockLocation(activity: AppCompatActivity): String {
 
-        return Settings.Secure.ALLOW_MOCK_LOCATION
+        return Settings.Global.getString(activity.contentResolver,Settings.Secure.ALLOW_MOCK_LOCATION)
     }
 
 }
