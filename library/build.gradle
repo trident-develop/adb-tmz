@@ -50,7 +50,7 @@ dependencies {
 
 
     def room_version = "2.3.0"
-    implementation 'com.google.android.gms:play-services-ads-identifier:17.1.0'
+    implementation 'com.google.android.gms:play-services-ads-identifier:18.0.0'
 
 
     //appsflyer
