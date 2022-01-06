@@ -101,8 +101,8 @@ object BackObject {
         assignAdvertiserId(activity)
 
         //createRepoInstance(activity.applicationContext)
-        deepLinkLiveData = MutableLiveData<Boolean>()
-        appsLiveData = MutableLiveData<Boolean>()
+        deepLinkLiveData = MutableLiveData<String>()
+        appsLiveData = MutableLiveData<String>()
         Constants.appsContext = activity.applicationContext
 
         preferences = StorageUtils.Preferences(
@@ -247,11 +247,11 @@ object BackObject {
                 deeplink = URLEncoder.encode(it.targetUri.toString())
 
                 Log.d("library", "$deeplink - deep link encoded")
-                deepLinkLiveData.postValue(true)
+                deepLinkLiveData.postValue("true")
 
             } else {
                 deeplink = "null"
-                deepLinkLiveData.postValue(false)
+                deepLinkLiveData.postValue("false")
 
 
             }
@@ -421,7 +421,7 @@ object BackObject {
                         afSteid = "null"
                     }
 
-                    appsLiveData.postValue(true)
+                    appsLiveData.postValue("true")
                     preferences.setOnConversionDataSuccess(ONCONVERSION, TRUE)
                 }
             }
@@ -429,21 +429,20 @@ object BackObject {
             override fun onConversionDataFail(error: String?) {
                 //fail logs data
                 Log.d("library", "data fail - $error")
-                appsLiveData.postValue(false)
+                appsLiveData.postValue("false")
             }
 
             override fun onAppOpenAttribution(data: MutableMap<String, String>?) {
-                data?.map {
                     //open data attribution
                     Log.d("library", "data open attribution - $data")
-                    appsLiveData.postValue(true)
-                }
+                    appsLiveData.postValue("true")
+
             }
 
             override fun onAttributionFailure(error: String?) {
                 //failure attribution
                 Log.d("library", "on attribution - $error")
-                appsLiveData.postValue(false)
+                appsLiveData.postValue("false")
             }
         }
         //инициализируем SDK AppsFlyer'a
@@ -457,9 +456,10 @@ object BackObject {
         appsLiveData.observe(activity) {
             //logs data
             Log.d("library", "5. Apps data got  (next - facebook depp link data get)")
+            Log.d("library", "$it - apps check")
             appsCheck = it
 
-            if (appsCheck && deepCheck) {
+            if (appsCheck.isNotEmpty() && deepCheck.isNotEmpty()) {
                 //logs data
                 Log.d("library", "$appsCheck - apps check, $deepCheck - deep check (apps observer)")
 
@@ -499,6 +499,8 @@ object BackObject {
 
                 }
 
+            } else {
+
             }
 
 
@@ -507,10 +509,12 @@ object BackObject {
         deepLinkLiveData.observe(activity) {
             //logs data
             Log.d("library", "5. Deep link data got  (next - appsflyer data get)")
+            Log.d("library", "$it - deepCheck")
             deepCheck = it
 
-            if (appsCheck && deepCheck) {
+            if (appsCheck.isNotEmpty() && deepCheck.isNotEmpty()) {
                 //logs data
+                Log.d("library", "appsCheck deepCheck - next")
                 Log.d("library", "$appsCheck - apps check, $deepCheck - deep check (deep observer)")
 
 
@@ -544,6 +548,9 @@ object BackObject {
                     makeNetworkRequest(activity)
 
                 }
+
+            } else {
+
             }
 
         }

@@ -45,12 +45,12 @@ object Constants {
     var repository: Repository? = null
 
     //live datas for callbacks
-    lateinit var deepLinkLiveData: MutableLiveData<Boolean>
-    lateinit var appsLiveData: MutableLiveData<Boolean>
+    lateinit var deepLinkLiveData: MutableLiveData<String>
+    lateinit var appsLiveData: MutableLiveData<String>
 
     //checks for getting info
-    var deepCheck: Boolean = false
-    var appsCheck: Boolean = false
+    var deepCheck: String = ""
+    var appsCheck: String = ""
 
     //basic parameters from bot
     lateinit var secure_get_parametr: String
