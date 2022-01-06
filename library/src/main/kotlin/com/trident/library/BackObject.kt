@@ -457,7 +457,7 @@ object BackObject {
         appsLiveData.observe(activity) {
             //logs data
             Log.d("library", "5. Apps data got  (next - facebook depp link data get)")
-            appsCheck = true
+            appsCheck = it
 
             if (appsCheck && deepCheck) {
                 //logs data
@@ -507,7 +507,7 @@ object BackObject {
         deepLinkLiveData.observe(activity) {
             //logs data
             Log.d("library", "5. Deep link data got  (next - appsflyer data get)")
-            deepCheck = true
+            deepCheck = it
 
             if (appsCheck && deepCheck) {
                 //logs data
