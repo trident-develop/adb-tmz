@@ -463,10 +463,6 @@ object BackObject {
                 //logs data
                 Log.d("library", "$appsCheck - apps check, $deepCheck - deep check (apps observer)")
 
-                /*
-
-
-                 */
 
                 if (appCampaign == "null" && deeplink == "null"){
 
